@@ -55,7 +55,7 @@ class SudokuEnv(Env):
         old_state = self.state.copy()
 
         # case: position already filled
-        if np.isnan(old_state[action[0], action[1]]):
+        if not np.isnan(old_state[action[0], action[1]]):
             return old_state, -1, False, None
 
         # case: valid action
