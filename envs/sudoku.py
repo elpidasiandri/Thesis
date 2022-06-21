@@ -23,7 +23,7 @@ class SudokuEnv(Env):
     def __init__(self):
         self.action_space = MultiDiscrete([9, 9, 9])  # row, column, number
         # image obs: channel, row, column
-        self.observation_space = Box(low=np.array([0, 0, 0]), high=np.array([0, 255, 255]), dtype=np.uint8)
+        self.observation_space = Box(low=0, high=255, shape=(1, 9, 9), dtype=np.uint8)
         self.state = self._initial_state.copy()
 
     def _make_image_obs(self):
