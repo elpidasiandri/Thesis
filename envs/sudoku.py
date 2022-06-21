@@ -16,28 +16,38 @@ class SudokuEnv(Env):
     _initial_state = np.empty((9, 9))
     _initial_state[:] = np.NaN
 
+    # mapping
+    _nums = [np.NaN] + list(range(1, 10))
+    _vals = np.linspace(0, 255, 10).round().astype(int)
+
     def __init__(self):
         self.action_space = MultiDiscrete([9, 9, 9])  # row, column, number
-        self.observation_space = Box(low=np.array([1, 1]), high=np.array([9, 9]))
+        # image obs: channel, row, column
+        self.observation_space = Box(low=np.array([0, 0, 0]), high=np.array([0, 255, 255]), dtype=np.uint8)
         self.state = self._initial_state.copy()
+
+    def _make_image_obs(self):
+        obs = self.state.copy()
+        # iteratively replace numbers with values
+        for i in range(len(self._nums)):
+            obs = np.where(obs == self._nums[i], self._vals[i], obs)
+        return obs
 
     def _check_status(self) -> int:
         nan_mask = np.isnan(self.state)
 
-        # validity check
-
         # non-validity = loss
-        # row
+        # row check
         for i in range(self.state.shape[0]):
             r = self.state[i][~nan_mask[i]]
             if np.unique(r).size < r.size:
                 return self._loss
-        # column
+        # column check
         for i in range(self.state.shape[1]):
             c = self.state[:, i][~nan_mask[:, i]]
             if np.unique(c).size < c.size:
                 return self._loss
-        # sub-grids
+        # sub-grid check
         for i, j in product(*[[0, 3, 6]] * 2):
             subgrid = self.state[i:i + 3, j:j + 3][~nan_mask[i:i + 3, j:j + 3]]
             if np.unique(subgrid).size < subgrid.size:
@@ -55,24 +65,25 @@ class SudokuEnv(Env):
         :param action: Multi-discrete action within ranges [0, 0, 0] and [8, 8, 8]
         :return: observation numpy array, reward scalar, episode done boolean, info dict
         """
-        old_state = self.state.copy()
 
         # case: position already filled
-        if not np.isnan(old_state[action[0], action[1]]):
-            return old_state, -1, False, None
+        if not np.isnan(self.state[action[0], action[1]]):
+            return self._make_image_obs(), -1, False, None
 
         # case: valid action
         self.state[action[0], action[1]] = action[2] + 1  # plus one for range 1-9
 
         status = self._check_status()
 
+        state = self._make_image_obs()
+
         # valid action sub-cases: win, unfinished, loss
         if status == self._win:
-            return self.state.copy(), 10, True, None
+            return state, 10, True, None
         elif status == self._unfinished:
-            return self.state.copy(), 1, False, None
+            return state, 1, False, None
         elif status == self._loss:
-            return self.state.copy(), -10, True, None
+            return state, -10, True, None
 
     def render(self, **kwargs):
         state_list = self.state.tolist()
