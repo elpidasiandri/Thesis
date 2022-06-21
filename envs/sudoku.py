@@ -72,21 +72,26 @@ class SudokuEnv(Env):
         elif status == self._unfinished:
             return self.state.copy(), 1, False, None
         elif status == self._loss:
-            return self.state.copy(), -5, True, None
+            return self.state.copy(), -10, True, None
 
     def render(self, **kwargs):
         state_list = self.state.tolist()
 
-        sys.stdout.write('\n---------------\n')
+        sys.stdout.write('\n-------------------------\n')
         for i in range(len(state_list)):
-            sys.stdout.write('|')
+            sys.stdout.write('| ')
             r = state_list[i]
             for j in range(len(r)):
-                sys.stdout.write(r[j])
+                if np.isnan(r[j]):
+                    sys.stdout.write(' ')
+                else:
+                    sys.stdout.write(str(int(r[j])))
+                sys.stdout.write(' ')
                 if (j + 1) % 3 == 0:
-                    sys.stdout.write('|')
+                    sys.stdout.write('| ')
+            sys.stdout.write('\n')
             if (i + 1) % 3 == 0:
-                sys.stdout.write('\n---------------\n')
+                sys.stdout.write('-------------------------\n')
 
     def reset(self):
         self.state = self._initial_state.copy()
