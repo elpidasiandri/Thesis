@@ -29,7 +29,7 @@ class SudokuEnv(Env):
     def _make_image_obs(self):
         obs = self.state.copy()
         # iteratively replace numbers with values
-        for i in range(len(self._nums)):
+        for i in range(10):
             obs = np.where(obs == self._nums[i], self._vals[i], obs)
         return obs
 
@@ -38,12 +38,12 @@ class SudokuEnv(Env):
 
         # non-validity = loss
         # row check
-        for i in range(self.state.shape[0]):
+        for i in range(9):
             r = self.state[i][~nan_mask[i]]
             if np.unique(r).size < r.size:
                 return self._loss
         # column check
-        for i in range(self.state.shape[1]):
+        for i in range(9):
             c = self.state[:, i][~nan_mask[:, i]]
             if np.unique(c).size < c.size:
                 return self._loss
@@ -86,13 +86,11 @@ class SudokuEnv(Env):
             return state, -10, True, None
 
     def render(self, **kwargs):
-        state_list = self.state.tolist()
-
         sys.stdout.write('\n-------------------------\n')
-        for i in range(len(state_list)):
+        for i in range(9):
             sys.stdout.write('| ')
-            r = state_list[i]
-            for j in range(len(r)):
+            r = self.state[i]
+            for j in range(9):
                 if np.isnan(r[j]):
                     sys.stdout.write(' ')
                 else:
