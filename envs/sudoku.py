@@ -1,8 +1,11 @@
+import sys
+from functools import partial
+from itertools import product
+
+import numpy as np
 from gym import Env
 from gym.spaces import MultiDiscrete, Box
-import numpy as np
-from itertools import product
-import sys
+from stable_baselines3.common.vec_env import DummyVecEnv
 
 
 class SudokuEnv(Env):
@@ -88,3 +91,8 @@ class SudokuEnv(Env):
     def reset(self):
         self.state = self._initial_state.copy()
         return self.state.copy()
+
+
+class VecSudokuEnv(DummyVecEnv):
+    def __init__(self, n_envs=8):
+        super(VecSudokuEnv, self).__init__([partial(SudokuEnv) for _ in range(n_envs)])
