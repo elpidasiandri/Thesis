@@ -16,22 +16,16 @@ class SudokuEnv(Env):
     _initial_state = np.empty((9, 9))
     _initial_state[:] = np.NaN
 
-    # mapping
-    _nums = [np.NaN] + list(range(1, 10))
-    _vals = np.linspace(0, 255, 10).round().astype(int)
-
     def __init__(self):
         self.action_space = MultiDiscrete([9, 9, 9])  # row, column, number
         # image obs: channel, row, column
-        self.observation_space = Box(low=0, high=255, shape=(1, 9, 9), dtype=np.uint8)
+        self.observation_space = Box(low=0, high=9, shape=(1, 9, 9), dtype=np.uint8)
         self.state = self._initial_state.copy()
 
     def _make_image_obs(self):
-        obs = self.state.copy()
-        # iteratively replace numbers with values
-        for i in range(10):
-            obs = np.where(obs == self._nums[i], self._vals[i], obs)
-        return obs
+        obs = self.state.copy()[None]
+        obs = np.where(np.isnan(obs), 0, obs)
+        return obs / 9
 
     def _check_status(self) -> int:
         nan_mask = np.isnan(self.state)
@@ -68,22 +62,21 @@ class SudokuEnv(Env):
 
         # case: position already filled
         if not np.isnan(self.state[action[0], action[1]]):
-            return self._make_image_obs(), -1, False, None
+            return self._make_image_obs(), -1, False, {'episode': None, 'is_success': False}
 
         # case: valid action
         self.state[action[0], action[1]] = action[2] + 1  # plus one for range 1-9
 
         status = self._check_status()
-
         state = self._make_image_obs()
 
         # valid action sub-cases: win, unfinished, loss
         if status == self._win:
-            return state, 10, True, None
+            return state, 10, True, {'episode': None, 'is_success': True}
         elif status == self._unfinished:
-            return state, 1, False, None
+            return state, 1, False, {'episode': None, 'is_success': False}
         elif status == self._loss:
-            return state, -10, True, None
+            return state, -10, True, {'episode': None, 'is_success': False}
 
     def render(self, **kwargs):
         sys.stdout.write('\n-------------------------\n')
@@ -104,7 +97,7 @@ class SudokuEnv(Env):
 
     def reset(self):
         self.state = self._initial_state.copy()
-        return self.state.copy()
+        return self.state.copy()[None]
 
 
 class VecSudokuEnv(DummyVecEnv):

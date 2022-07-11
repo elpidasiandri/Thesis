@@ -1,16 +1,28 @@
-from stable_baselines3 import A2C
+from stable_baselines3.common.callbacks import CheckpointCallback
 from stable_baselines3.common.vec_env import VecMonitor
+
+from algorithms import DeviceAlternatingPPO
 from envs import VecSudokuEnv
+from policies import SudokuACPolicy, ActorCriticCNNPolicy
 
 if __name__ == '__main__':
-    env = VecMonitor(VecSudokuEnv())
+    num_instances = 16
 
-    # policy_kwargs = {'net_arch': }
+    env = VecMonitor(VecSudokuEnv(num_instances))
 
-    model = A2C("CnnPolicy",
-                env,
-                tensorboard_log="Sudoku_A2C_CNN",
-                verbose=1
-                )
+    model = DeviceAlternatingPPO(ActorCriticCNNPolicy,
+                                 env,
+                                 n_steps=5120,
+                                 batch_size=640 * num_instances,
+                                 tensorboard_log="bin",
+                                 verbose=1
+                                 )
 
-    i = 2
+    callbacks = [CheckpointCallback(20480, "models", "CNN_3layer")]
+
+    model.learn(total_timesteps=500_000_000,
+                callback=callbacks,
+                tb_log_name="CNN_3layer")
+    model.save("models/CNN_3layer_final")
+
+    env.close()
