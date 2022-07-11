@@ -13,13 +13,12 @@ class SudokuEnv(Env):
     _unfinished = 1
     _loss = 2
 
-    _initial_state = np.empty((9, 9))
-    _initial_state[:] = np.NaN
+    _initial_state = np.full((9, 9), np.NaN)
 
     def __init__(self):
         self.action_space = MultiDiscrete([9, 9, 9])  # row, column, number
         # image obs: channel, row, column
-        self.observation_space = Box(low=0, high=9, shape=(1, 9, 9), dtype=np.uint8)
+        self.observation_space = Box(low=0, high=1, shape=(1, 9, 9), dtype=np.uint8)
         self.state = self._initial_state.copy()
 
     def _make_image_obs(self):
