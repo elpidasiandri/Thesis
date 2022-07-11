@@ -8,6 +8,10 @@ from scipy.signal import convolve2d
 
 class Connect4Env(Env):
 
+    _win = 0
+    _loss = 1
+    _invalid = 2
+
     def __init__(self,
                  width: int = 7,
                  height: int = 6,
@@ -27,7 +31,7 @@ class Connect4Env(Env):
 
         self.state = self.initial_state.copy()
         self.switch = False
-        self.winner = None
+        self.done = False
 
     def _build_winning_convolutions(self):
         self.convolutions = []
@@ -40,27 +44,39 @@ class Connect4Env(Env):
         for conv in self.convolutions:
             if np.any(convolve2d(self.state, conv, mode="valid") /
                       (self.connect * (1 + self.switch)) == 1):
-                self.winner = 1 + self.switch
                 return True
         return False
 
-    def step(self, action):
-        if self.switch:
-            player = 1
-        else:
-            player = 0
+    def step(self, column):
+        # TODO: this is really really wrong. There are two different rollouts.
+        #  I need to use PettingZoo for a multi-agent environment:
+        #  https://www.pettingzoo.ml/environment_creation#example-custom-environment
+        #  https://www.pettingzoo.ml/wrappers#included-multi-agent-only-functions
+        if self.done:
+            return self.state, -20, True, {}
 
-        self.state[0, action, action] = player
+        player = self.switch + 1
+        row = np.argmax(self.state[0, :, column] == 0)
+
+        # case: column is full
+        if self.state[0, row, column] != 0:
+            # TODO: fix state depending on player
+            return self.state, -1, False, {}
+
+        self.state[0, row, column] = player
+
+        # case: column is valid
+        self.done = self._check_win()
+        rew = 20 if self.done else 1
+
         self.switch = not self.switch
-
-        done = self._check_win()
-
-        return self.state, 0, done, {}
+        # TODO: fix state depending on player
+        return self.state, rew, False, {}
 
     def reset(self):
         self.state = self.initial_state.copy()
         self.switch = False
-        self.winner = None
+        self.done = False
 
     def render(self, mode="human"):
         pass
