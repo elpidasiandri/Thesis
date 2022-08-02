@@ -1,6 +1,7 @@
 import sys
 from functools import partial
 from itertools import product
+from typing import Union
 
 import numpy as np
 from gym import Env
@@ -13,36 +14,69 @@ class SudokuEnv(Env):
     _unfinished = 1
     _loss = 2
 
-    _initial_state = np.full((9, 9), np.NaN)
+    _empty_state = np.full((9, 9), np.NaN)
 
-    def __init__(self):
+    def __init__(self, n_empty=40):
+        self.n_empty = n_empty
         self.action_space = MultiDiscrete([9, 9, 9])  # row, column, number
         # image obs: channel, row, column
         self.observation_space = Box(low=0, high=1, shape=(1, 9, 9), dtype=np.uint8)
-        self.state = self._initial_state.copy()
+        self.state = None
+        self.reset()
 
     def _make_image_obs(self):
         obs = self.state.copy()[None]
         obs = np.where(np.isnan(obs), 0, obs)
         return obs / 9
 
-    def _check_status(self) -> int:
-        nan_mask = np.isnan(self.state)
+    def get_solutions(self,
+                      state: Union[None, np.ndarray] = None,
+                      n_solutions: int = 1):
+        if state is None:
+            state = self.state
+
+        status = self._check_status(state)
+        if status == self._win:
+            return [state]
+        if status == self._loss:
+            return None
+
+        # 1st nan index
+        nan_rows, nan_cols = np.where(np.isnan(state))
+        nan_idx = [nan_rows[0], nan_cols[0]]
+
+        solutions = []
+        values = np.arange(1, 10)
+        np.random.shuffle(values)
+
+        for value in values:
+            state_branch = state.copy()
+            state_branch[nan_idx[0], nan_idx[1]] = value
+            solution_branches = self.get_solutions(state_branch, n_solutions - len(solutions))
+            if solution_branches is not None:
+                solutions += solution_branches
+            if len(solutions) >= n_solutions:
+                return solutions
+
+    def _check_status(self, state=None) -> int:
+        if state is None:
+            state = self.state
+        nan_mask = np.isnan(state)
 
         # non-validity = loss
         # row check
         for i in range(9):
-            r = self.state[i][~nan_mask[i]]
+            r = state[i][~nan_mask[i]]
             if np.unique(r).size < r.size:
                 return self._loss
         # column check
         for i in range(9):
-            c = self.state[:, i][~nan_mask[:, i]]
+            c = state[:, i][~nan_mask[:, i]]
             if np.unique(c).size < c.size:
                 return self._loss
         # sub-grid check
         for i, j in product(*[[0, 3, 6]] * 2):
-            subgrid = self.state[i:i + 3, j:j + 3][~nan_mask[i:i + 3, j:j + 3]]
+            subgrid = state[i:i + 3, j:j + 3][~nan_mask[i:i + 3, j:j + 3]]
             if np.unique(subgrid).size < subgrid.size:
                 return self._loss
 
@@ -95,7 +129,10 @@ class SudokuEnv(Env):
                 sys.stdout.write('-------------------------\n')
 
     def reset(self):
-        self.state = self._initial_state.copy()
+        self.state = self.get_solutions(self._empty_state.copy())[0]
+        xs = np.random.randint(0, 9, self.n_empty)
+        ys = np.random.randint(0, 9, self.n_empty)
+        self.state[xs, ys] = np.NaN
         return self.state.copy()[None]
 
 
