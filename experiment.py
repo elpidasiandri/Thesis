@@ -14,6 +14,7 @@ if __name__ == '__main__':
 
     model = DeviceAlternatingPPO(SudokuACPolicy,
                                  env,
+                                 learning_rate=1e-4,
                                  n_steps=5120,
                                  batch_size=640 * num_instances,
                                  tensorboard_log="bin",

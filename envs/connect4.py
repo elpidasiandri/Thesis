@@ -7,7 +7,6 @@ from scipy.signal import convolve2d
 # TODO: Complete this
 
 class Connect4Env(Env):
-
     _win = 0
     _loss = 1
     _invalid = 2
@@ -42,8 +41,8 @@ class Connect4Env(Env):
 
     def _check_win(self):
         for conv in self.convolutions:
-            if np.any(convolve2d(self.state, conv, mode="valid") /
-                      (self.connect * (1 + self.switch)) == 1):
+            filled = self.state == (1 + self.switch)
+            if np.any(convolve2d(filled, conv, mode="valid") / self.connect == 1):
                 return True
         return False
 
