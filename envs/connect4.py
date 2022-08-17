@@ -16,11 +16,6 @@ from scipy.signal import convolve2d
 
 
 class Connect4Env(AECEnv):
-    _win = 0
-    _unfinished = 1
-    _invalid = 2
-    _loss = 3
-
     def __init__(self,
                  width: int = 7,
                  height: int = 6,
@@ -49,7 +44,7 @@ class Connect4Env(AECEnv):
         self.convolutions.append(np.array([[1] * self.connect]))
         self.convolutions.append(np.array([[1]] * self.connect))
         self.convolutions.append(np.identity(self.connect))
-        self.convolutions.append(np.diag(np.ones(self.connect)))
+        self.convolutions.append(np.flip(np.identity(self.connect), 0))
 
     # return the same object
     def observation_space(self, agent: str) -> gym.Space:
@@ -86,55 +81,52 @@ class Connect4Env(AECEnv):
         """
         Updates rewards and dones when the round is over
         """
-        status = []
-        done = False
+        rewards = []
+        dones = [False, False]
         for a in self.states:
-            # invalid move
+            # invalid move - no change
             if (self.states[a][0] == self.states[a][1]).all():
-                outcome = self._invalid
+                rewards.append(-4)
             # win (lose)
-            elif self._check_win(self.states[a][1]):
-                outcome = self._win
-                done = True
+            elif self._check_win(self.states[a][1, 0]):
+                rewards = [10, -10]
+                dones = [True, True]
+                if self.agent_name_mapping[a]:
+                    rewards.reverse()
+                break
             # unfinished
             else:
-                outcome = self._unfinished
-            status.append(outcome)
+                rewards.append(1)
 
-
-        self.dones = {agent: done for agent in self.agents}
-
-        # --- LOGIC ---
-        # if invalid: loss, - 10
-        # else if valid:
-        #   if opponent has won: loss, - 10
-        #   if player has won: win, 10
-        #   if no loss or win: unfinished, 1
-        pass
+        self.rewards[self.agents[0]], self.rewards[self.agents[1]] = rewards
+        self.dones[self.agents[0]], self.dones[self.agents[1]] = dones
 
     def _update_obss(self):
         """Updates observations"""
-        # the observation should be the previous player's observation
-        #  S (previous player), A, R, S (current player)
-        # swap 1s and 2s for player 1 and player 2
+        self.observations = {agent: self.states[agent][0] for agent in self.agents}
 
-        # state = self.state.copy()
-        # if self.possible_agents.index(agent) == 1:
-        #     p_1_mask, p_2_mask = state == 1, state == 2
-        #     state[p_1_mask] = 2
-        #     state[p_2_mask] = 1
-        # return state
-
-        pass
-
-    def _update_state(self, agent, action):
+    def _update_state(self, agent, column):
         """Builds the state of an agent using an action"""
-        # use the previous state too for invalid move comparison
+        # use the previous state for invalid move comparison
+        old_state = self.states[self.agents[self.agent_name_mapping[agent] - 1]][1].copy()
+        # swap 1s and 2s
+        mask_1, mask_2 = old_state == 1, old_state == 2
+        old_state[mask_1], old_state[mask_2] = 2, 1
+
+        new_state = old_state.copy()
+        if not (new_state[:, column]).all():  # if not invalid
+            last_row = np.where(new_state[0, :, column] > 0)[0]
+            try:
+                last_row = last_row[0]
+            except:
+                last_row = self.height
+            new_state[0, last_row - 1, column] = 1
+
+        self.states[agent] = np.stack([old_state, new_state])
 
     def step(self, action: ActionType) -> None:
         agent = self.agent_selection
         if self.dones[agent]:
-            # TODO: this requires None only, need fixing?
             return self._was_done_step(action)
 
         self._cumulative_rewards[agent] = 0  # don't accumulate rewards
@@ -144,8 +136,8 @@ class Connect4Env(AECEnv):
             self._compute_rewards_dones()
             self._update_obss()
 
-        self.agent_selection = self._agent_selector.next()  # go to next
-        self._accumulate_rewards()  # add _cumulative_rewards to rewards
+        self.agent_selection = self._agent_selector.next()
+        self._accumulate_rewards()  # compute rewards
 
     def render(self, mode="human"):
         # Empty for now
