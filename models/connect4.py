@@ -1,5 +1,8 @@
+from typing import Tuple
+
 import torch as th
 import torch.nn.functional as F
+from stable_baselines3.dqn.policies import QNetwork
 from torch import nn
 
 
@@ -36,3 +39,11 @@ class Connect4CnnMlpACNetwork(nn.Module):
 
     def forward_critic(self, x: th.Tensor) -> th.Tensor:
         return self.critic(x)
+
+
+class Connect4CnnMlpQNetwork(QNetwork):
+    def __init__(self, *args, **kwargs):
+        super(Connect4CnnMlpQNetwork, self).__init__(*args, **kwargs)
+        self.q_net = Connect4CnnMlpNetwork()
+        self.q_net.linear_out = nn.Linear(self.q_net.linear_out.in_features, self.action_space.n)
+        self.features_extractor = nn.Identity()

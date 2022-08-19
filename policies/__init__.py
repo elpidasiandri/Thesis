@@ -1,2 +1,2 @@
-from .connect4 import Connect4CnnMlpACPolicy
+from .connect4 import Connect4CnnMlpACPolicy, Connect4CnnMlpDQNPolicy
 from .sudoku import SudokuACPolicy, ActorCriticCNNPolicy

@@ -5,9 +5,9 @@ import torch.nn.functional as F
 from torch import nn
 
 
-class SudokuNetwork(nn.Module):
+class SudokuMixerNetwork(nn.Module):
     def __init__(self):
-        super(SudokuNetwork, self).__init__()
+        super(SudokuMixerNetwork, self).__init__()
 
         self.linear = nn.Linear(9, 32)
         self.linear_transpose = nn.Linear(9, 32)
@@ -25,7 +25,7 @@ class SudokuNetwork(nn.Module):
         out = F.relu(self.flat(self.linear1(out)))
         out = F.relu(self.linear2(out))
         out = F.relu(self.linear3(out))
-        return F.relu(self.linear_outout)  # latent
+        return F.relu(self.linear_out(out))  # latent
 
 
 class SudokuMlpACNetwork(nn.Module):
@@ -33,8 +33,8 @@ class SudokuMlpACNetwork(nn.Module):
     def __init__(self):
         super(SudokuMlpACNetwork, self).__init__()
 
-        self.actor = SudokuNetwork()
-        self.critic = SudokuNetwork()
+        self.actor = SudokuMixerNetwork()
+        self.critic = SudokuMixerNetwork()
 
         self.latent_dim_pi, self.latent_dim_vf = 256, 256
 
@@ -48,9 +48,9 @@ class SudokuMlpACNetwork(nn.Module):
         return self.critic(x)
 
 
-class CNNNetwork(nn.Module):
+class SudokuCnnetwork(nn.Module):
     def __init__(self):
-        super(CNNNetwork, self).__init__()
+        super(SudokuCnnetwork, self).__init__()
 
         self.cnn1 = nn.Conv2d(1, 3, 3)
         self.cnn2 = nn.Conv2d(3, 8, 3)
@@ -70,7 +70,7 @@ class SudokuCnnACNetwork(nn.Module):
     def __init__(self):
         super(SudokuCnnACNetwork, self).__init__()
 
-        self.actor, self.critic = CNNNetwork(), CNNNetwork()
+        self.actor, self.critic = SudokuCnnetwork(), SudokuCnnetwork()
 
         self.latent_dim_pi, self.latent_dim_vf = 64, 64
 

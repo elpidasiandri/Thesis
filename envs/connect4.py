@@ -1,4 +1,5 @@
-from typing import Optional
+import sys
+from typing import Optional, Union
 
 import gym
 import numpy as np
@@ -36,6 +37,8 @@ class _connect4(AECEnv):
         self.possible_agents = ["player_" + str(p) for p in range(2)]
         self.agent_name_mapping = dict(zip(self.possible_agents, list(range(2))))
 
+        self.reset()
+
     def _build_winning_convolutions(self):
         self.convolutions = []
         self.convolutions.append(np.array([[1] * self.connect]))
@@ -61,7 +64,7 @@ class _connect4(AECEnv):
         self.dones = {agent: False for agent in self.agents}
         self.infos = {agent: {} for agent in self.agents}
         self.states = {agent: self.initial_state.copy() for agent in self.agents}
-        self.observations = self.states.copy()
+        self.observations = {agent: self.initial_state.copy()[1] for agent in self.agents}
 
         self._agent_selector = agent_selector(self.agents)
         self.agent_selection = self._agent_selector.next()
@@ -93,7 +96,7 @@ class _connect4(AECEnv):
                 break
             # unfinished
             else:
-                rewards.append(1)
+                rewards.append(0)
 
         self.rewards[self.agents[0]], self.rewards[self.agents[1]] = rewards
         self.dones[self.agents[0]], self.dones[self.agents[1]] = dones
@@ -136,9 +139,27 @@ class _connect4(AECEnv):
         self.agent_selection = self._agent_selector.next()
         self._accumulate_rewards()  # compute rewards
 
-    def render(self, mode="human"):
-        # Empty for now
-        pass
+    def render(self, mode="human", agent: Union[str, None] = None):
+        if agent is None:
+            agent = self.possible_agents[-1]
+        sys.stdout.write('\n' + '-' * (4 * self.width - 4) + '\n')
+        for i in range(self.height):
+            sys.stdout.write('| ')
+            r = self.states[agent][1, 0, i]
+            for j in range(self.width):
+                cell = r[j]
+                if cell == 0:
+                    sys.stdout.write('   ')
+                else:
+                    if (r[j] == 2 and self.agent_name_mapping[agent]) or \
+                            (r[j] == 1 and not self.agent_name_mapping[agent]):
+                        cell_value = 'P1 '
+                    else:
+                        cell_value = 'P2 '
+                    sys.stdout.write(cell_value)
+                sys.stdout.write('')
+            sys.stdout.write('|\n')
+        sys.stdout.write('-' * (4 * self.width - 4) + '\n')
 
     def seed(self, seed: Optional[int] = None) -> None:
         # No seed for now
