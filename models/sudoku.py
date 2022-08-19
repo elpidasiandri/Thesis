@@ -13,19 +13,25 @@ class SudokuNetwork(nn.Module):
         self.linear_transpose = nn.Linear(9, 32)
         self.cnn = nn.Conv2d(1, 1, 3, padding='valid')
         self.flat = nn.Flatten()
-        self.linear_out = nn.Linear(900, 256)
+        self.linear1 = nn.Linear(900, 256)
+        self.linear2 = nn.Linear(256, 128)
+        self.linear3 = nn.Linear(128, 128)
+        self.linear_out = nn.Linear(128, 128)
 
     def forward(self, x: th.Tensor) -> th.Tensor:
         out = F.relu(self.linear(x)).transpose(2, 3)  # column
         out = F.relu((self.linear_transpose(out))).transpose(2, 3)  # row
-        out = F.leaky_relu(self.cnn(out))  # grid (??)
-        return F.relu(self.linear_out(self.flat(out)))  # latent
+        out = F.leaky_relu(self.cnn(out))  # grid
+        out = F.relu(self.flat(self.linear1(out)))
+        out = F.relu(self.linear2(out))
+        out = F.relu(self.linear3(out))
+        return F.relu(self.linear_outout)  # latent
 
 
-class SudokuACNetwork(nn.Module):
+class SudokuMlpACNetwork(nn.Module):
 
     def __init__(self):
-        super(SudokuACNetwork, self).__init__()
+        super(SudokuMlpACNetwork, self).__init__()
 
         self.actor = SudokuNetwork()
         self.critic = SudokuNetwork()
@@ -60,9 +66,9 @@ class CNNNetwork(nn.Module):
         return F.relu((self.lin_out(out)))
 
 
-class ActorCriticCNNNetwork(nn.Module):
+class SudokuCnnACNetwork(nn.Module):
     def __init__(self):
-        super(ActorCriticCNNNetwork, self).__init__()
+        super(SudokuCnnACNetwork, self).__init__()
 
         self.actor, self.critic = CNNNetwork(), CNNNetwork()
 

@@ -3,8 +3,7 @@ from stable_baselines3.common.vec_env import VecMonitor
 
 from algorithms import DeviceAlternatingPPO
 from envs import VecConnect4Env
-
-# TODO: make policy
+from policies import Connect4CnnMlpACPolicy
 
 model_name = "Connect4MLP"
 
@@ -13,7 +12,7 @@ if __name__ == '__main__':
 
     env = VecMonitor(VecConnect4Env())
 
-    model = DeviceAlternatingPPO(SudokuACPolicy,
+    model = DeviceAlternatingPPO(Connect4CnnMlpACPolicy,
                                  env,
                                  learning_rate=1e-4,
                                  n_steps=5120,

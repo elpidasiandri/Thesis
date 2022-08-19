@@ -100,7 +100,7 @@ class _connect4(AECEnv):
 
     def _update_obss(self):
         """Updates observations"""
-        self.observations = {agent: self.states[agent][0] for agent in self.agents}
+        self.observations = {agent: self.states[agent][1] for agent in self.agents}
 
     def _update_state(self, agent, column):
         """Builds the state of an agent using an action"""

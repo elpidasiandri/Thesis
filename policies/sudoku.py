@@ -1,7 +1,7 @@
 import torch as th
 from stable_baselines3.common.policies import ActorCriticPolicy
 
-from ..models.sudoku import SudokuACNetwork, ActorCriticCNNNetwork
+from models.sudoku import SudokuMlpACNetwork, SudokuCnnACNetwork
 
 
 class SudokuACPolicy(ActorCriticPolicy):
@@ -10,7 +10,7 @@ class SudokuACPolicy(ActorCriticPolicy):
         super(SudokuACPolicy, self).__init__(*args, **kwargs)
 
     def _build_mlp_extractor(self) -> None:
-        self.mlp_extractor = SudokuACNetwork()
+        self.mlp_extractor = SudokuMlpACNetwork()
 
     # Bypass observation preprocessing and features extractor
     def extract_features(self, obs: th.Tensor) -> th.Tensor:
@@ -23,7 +23,7 @@ class ActorCriticCNNPolicy(ActorCriticPolicy):
         super(ActorCriticCNNPolicy, self).__init__(*args, **kwargs)
 
     def _build_mlp_extractor(self) -> None:
-        self.mlp_extractor = ActorCriticCNNNetwork()
+        self.mlp_extractor = SudokuCnnACNetwork()
 
     # Bypass observation preprocessing and features extractor
     def extract_features(self, obs: th.Tensor) -> th.Tensor:
