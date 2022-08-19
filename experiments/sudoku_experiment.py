@@ -3,7 +3,7 @@ from stable_baselines3.common.vec_env import VecMonitor
 
 from algorithms import DeviceAlternatingPPO
 from envs import VecSudokuEnv
-from policies import SudokuACPolicy, ActorCriticCNNPolicy
+from policies.sudoku import SudokuACPolicy
 
 model_name = "SudokuMixer"
 
@@ -21,11 +21,11 @@ if __name__ == '__main__':
                                  verbose=1
                                  )
 
-    callbacks = [CheckpointCallback(20480, "models", model_name)]
+    callbacks = [CheckpointCallback(20480, "../models_bin", model_name)]
 
     model.learn(total_timesteps=500_000_000,
                 callback=callbacks,
                 tb_log_name=model_name)
-    model.save("models/" + model_name + "_final")
+    model.save("models_bin/" + model_name + "_final")
 
     env.close()

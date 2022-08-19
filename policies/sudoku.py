@@ -1,7 +1,7 @@
 import torch as th
 from stable_baselines3.common.policies import ActorCriticPolicy
 
-from models import SudokuACNetwork, ActorCriticCNNNetwork
+from ..models.sudoku import SudokuACNetwork, ActorCriticCNNNetwork
 
 
 class SudokuACPolicy(ActorCriticPolicy):

@@ -4,23 +4,20 @@ import gym
 import numpy as np
 from gym.spaces import Box, Discrete
 from pettingzoo import AECEnv
+from pettingzoo.utils import aec_to_parallel
 from pettingzoo.utils import agent_selector
-from pettingzoo.utils.env import ObsType, ActionType
 from scipy.signal import convolve2d
+from supersuit import pettingzoo_env_to_vec_env_v1, concat_vec_envs_v1
 
 
-# TODO: Complete this
-#  Multi-agent environment, PettingZoo:
-#  https://www.pettingzoo.ml/environment_creation#example-custom-environment
-#  https://www.pettingzoo.ml/wrappers#included-multi-agent-only-functions
+class _connect4(AECEnv):
+    metadata = {'name': 'Connect4Env', 'is_parallelizable': True}
 
-
-class Connect4Env(AECEnv):
     def __init__(self,
                  width: int = 7,
                  height: int = 6,
                  connect: int = 4):
-        super(Connect4Env, self).__init__()
+        super(_connect4, self).__init__()
 
         self.width = width
         self.height = height
@@ -54,7 +51,7 @@ class Connect4Env(AECEnv):
     def action_space(self, agent: str) -> gym.Space:
         return self._action_space
 
-    def observe(self, agent: str) -> ObsType:
+    def observe(self, agent: str):
         return self.observations[agent]
 
     def reset(self, **kwargs):
@@ -114,7 +111,7 @@ class Connect4Env(AECEnv):
         old_state[mask_1], old_state[mask_2] = 2, 1
 
         new_state = old_state.copy()
-        if not (new_state[:, column]).all():  # if not invalid
+        if not (new_state[0, :, column]).all():  # if not invalid
             last_row = np.where(new_state[0, :, column] > 0)[0]
             try:
                 last_row = last_row[0]
@@ -124,7 +121,7 @@ class Connect4Env(AECEnv):
 
         self.states[agent] = np.stack([old_state, new_state])
 
-    def step(self, action: ActionType) -> None:
+    def step(self, action) -> None:
         agent = self.agent_selection
         if self.dones[agent]:
             return self._was_done_step(action)
@@ -150,3 +147,16 @@ class Connect4Env(AECEnv):
     def close(self):
         # Nothing to close
         pass
+
+
+def Connect4Env(width: int = 7, height: int = 6, connect: int = 4):
+    return aec_to_parallel(_connect4(width, height, connect))
+
+
+def VecConnect4Env(n_envs: int = 8,
+                   width: int = 7,
+                   height: int = 6,
+                   connect: int = 4):
+    parallel_env = Connect4Env(width, height, connect)
+    vec_env = pettingzoo_env_to_vec_env_v1(parallel_env)
+    return concat_vec_envs_v1(vec_env, n_envs, base_class='stable_baselines3')
