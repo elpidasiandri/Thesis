@@ -94,6 +94,11 @@ class _connect4(AECEnv):
                 if self.agent_name_mapping[a]:
                     rewards.reverse()
                 break
+            # full state - draw
+            elif (self.states[a][1] > 0).all():
+                rewards = [5, 5]
+                dones = [True, True]
+                break
             # unfinished
             else:
                 rewards.append(0)

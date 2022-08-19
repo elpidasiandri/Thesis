@@ -1,6 +1,14 @@
 from envs import Connect4Env
-from stable_baselines3 import PPO
+from stable_baselines3 import DQN
 from time import sleep
+
+# TODO: make this a callable script, select:
+#  - PPO or DQN
+#  - model folder to load from
+#  - number of games to play
+#  - human or agent first
+
+# TODO: change env to AEC, make it simpler
 
 if __name__ == '__main__':
     n_games = 1
@@ -8,7 +16,7 @@ if __name__ == '__main__':
     env = Connect4Env()
 
     custom_objects = {'n_envs': 1}
-    model = PPO.load("../models_bin/Connect4CnnMlp_327680_steps.zip", device="cpu", custom_objects=custom_objects)
+    model = DQN.load("../experiments/models_bin/Connect4CnnMlp_final.zip", device="cpu", custom_objects=custom_objects)
 
     print("Agent goes first as P1, human goes second as P2")
 

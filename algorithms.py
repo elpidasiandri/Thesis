@@ -127,6 +127,7 @@ class DeviceAlternatingDQN(DQN):
 
             if self.dva:  # ++
                 self.device = "cpu"  # ++
+                self.replay_buffer.device = "cpu"  # ++
                 self.policy.cpu()  # ++
 
             rollout = self.collect_rollouts(
@@ -150,6 +151,7 @@ class DeviceAlternatingDQN(DQN):
                 if gradient_steps > 0:
                     if self.dva:  # ++
                         self.device = "cuda"  # ++
+                        self.replay_buffer.device = "cuda"  # ++
                         self.policy.cuda()  # ++
                     self.train(batch_size=self.batch_size, gradient_steps=gradient_steps)
 
