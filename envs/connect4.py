@@ -5,8 +5,7 @@ import gym
 import numpy as np
 from gym.spaces import Box, Discrete
 from pettingzoo import AECEnv
-from pettingzoo.utils import aec_to_parallel
-from pettingzoo.utils import agent_selector
+from pettingzoo.utils import aec_to_parallel, agent_selector
 from scipy.signal import convolve2d
 from supersuit import pettingzoo_env_to_vec_env_v1, concat_vec_envs_v1
 
@@ -167,7 +166,6 @@ class _connect4(AECEnv):
         sys.stdout.write('-' * (4 * self.width - 4) + '\n')
 
     def seed(self, seed: Optional[int] = None) -> None:
-        # No seed for now
         pass
 
     def close(self):
