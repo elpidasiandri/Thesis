@@ -13,19 +13,13 @@ class SudokuMixerNetwork(nn.Module):
         self.linear_transpose = nn.Linear(9, 32)
         self.cnn = nn.Conv2d(1, 1, 3, padding='valid')
         self.flat = nn.Flatten()
-        self.linear1 = nn.Linear(900, 256)
-        self.linear2 = nn.Linear(256, 128)
-        self.linear3 = nn.Linear(128, 128)
-        self.linear_out = nn.Linear(128, 128)
+        self.linear_out = nn.Linear(900, 256)
 
     def forward(self, x: th.Tensor) -> th.Tensor:
         out = F.relu(self.linear(x)).transpose(2, 3)  # column
         out = F.relu((self.linear_transpose(out))).transpose(2, 3)  # row
         out = F.leaky_relu(self.cnn(out))  # grid
-        out = F.relu(self.linear1(self.flat(out)))
-        out = F.relu(self.linear2(out))
-        out = F.relu(self.linear3(out))
-        return F.relu(self.linear_out(out))  # latent
+        return F.relu(self.linear_out(self.flat(out)))  # latent
 
 
 class SudokuMixerACNetwork(nn.Module):
@@ -36,7 +30,7 @@ class SudokuMixerACNetwork(nn.Module):
         self.actor = SudokuMixerNetwork()
         self.critic = SudokuMixerNetwork()
 
-        self.latent_dim_pi, self.latent_dim_vf = 128, 128
+        self.latent_dim_pi, self.latent_dim_vf = 256, 256
 
     def forward(self, x: th.Tensor) -> Tuple[th.Tensor, th.Tensor]:
         return self.actor(x), self.critic(x)
