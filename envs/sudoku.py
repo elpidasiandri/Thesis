@@ -22,12 +22,19 @@ class SudokuEnv(Env):
         # image obs: channel, row, column
         self.observation_space = Box(low=0, high=1, shape=(1, 9, 9), dtype=np.uint8)
         self.state = None
+        self._make_initial_state()
         self.reset()
 
     def _make_image_obs(self):
         obs = self.state.copy()[None]
         obs = np.where(np.isnan(obs), 0, obs)
         return obs / 9
+
+    def _make_initial_state(self):
+        self.initial_state = self.get_solutions(self._empty_state.copy())[0]
+        xs = np.random.randint(0, 9, self.n_empty)
+        ys = np.random.randint(0, 9, self.n_empty)
+        self.initial_state[xs, ys] = np.NaN
 
     def get_solutions(self,
                       state: Union[None, np.ndarray] = None,
@@ -129,10 +136,7 @@ class SudokuEnv(Env):
                 sys.stdout.write('-------------------------\n')
 
     def reset(self):
-        self.state = self.get_solutions(self._empty_state.copy())[0]
-        xs = np.random.randint(0, 9, self.n_empty)
-        ys = np.random.randint(0, 9, self.n_empty)
-        self.state[xs, ys] = np.NaN
+        self.state = self.initial_state.copy()
         return self.state.copy()[None]
 
 

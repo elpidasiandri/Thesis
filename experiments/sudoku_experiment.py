@@ -9,21 +9,22 @@ model_name = "SudokuMixer"
 
 if __name__ == '__main__':
     num_instances = 16
+    total_timesteps = 1_000_000
 
     env = VecMonitor(VecSudokuEnv(num_instances))
 
     model = DeviceAlternatingPPO(SudokuMixerACPolicy,
                                  env,
                                  learning_rate=1e-4,
-                                 n_steps=5120,
-                                 batch_size=640 * num_instances,
+                                 n_steps=512,
+                                 batch_size=1024,
                                  tensorboard_log="./bin",
                                  verbose=1
                                  )
 
     callbacks = [CheckpointCallback(20480, "./models_bin", model_name)]
 
-    model.learn(total_timesteps=500_000_000,
+    model.learn(total_timesteps=total_timesteps,
                 callback=callbacks,
                 tb_log_name=model_name)
     model.save("models_bin/" + model_name + "_final")
