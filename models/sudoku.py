@@ -28,10 +28,10 @@ class SudokuMixerNetwork(nn.Module):
         return F.relu(self.linear_out(out))  # latent
 
 
-class SudokuMlpACNetwork(nn.Module):
+class SudokuMixerACNetwork(nn.Module):
 
     def __init__(self):
-        super(SudokuMlpACNetwork, self).__init__()
+        super(SudokuMixerACNetwork, self).__init__()
 
         self.actor = SudokuMixerNetwork()
         self.critic = SudokuMixerNetwork()

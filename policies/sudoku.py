@@ -1,26 +1,26 @@
 import torch as th
 from stable_baselines3.common.policies import ActorCriticPolicy
 
-from models.sudoku import SudokuMlpACNetwork, SudokuCnnACNetwork
+from models.sudoku import SudokuMixerACNetwork, SudokuCnnACNetwork
 
 
-class SudokuACPolicy(ActorCriticPolicy):
+class SudokuMixerACPolicy(ActorCriticPolicy):
 
     def __init__(self, *args, **kwargs):
-        super(SudokuACPolicy, self).__init__(*args, **kwargs)
+        super(SudokuMixerACPolicy, self).__init__(*args, **kwargs)
 
     def _build_mlp_extractor(self) -> None:
-        self.mlp_extractor = SudokuMlpACNetwork()
+        self.mlp_extractor = SudokuMixerACNetwork()
 
     # Bypass observation preprocessing and features extractor
     def extract_features(self, obs: th.Tensor) -> th.Tensor:
         return obs.float()  # Handle Double type tensor error
 
 
-class ActorCriticCNNPolicy(ActorCriticPolicy):
+class SudokuCnnACPolicy(ActorCriticPolicy):
 
     def __init__(self, *args, **kwargs):
-        super(ActorCriticCNNPolicy, self).__init__(*args, **kwargs)
+        super(SudokuCnnACPolicy, self).__init__(*args, **kwargs)
 
     def _build_mlp_extractor(self) -> None:
         self.mlp_extractor = SudokuCnnACNetwork()

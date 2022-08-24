@@ -3,7 +3,7 @@ from stable_baselines3.common.vec_env import VecMonitor
 
 from algorithms import DeviceAlternatingPPO
 from envs import VecSudokuEnv
-from policies.sudoku import SudokuACPolicy
+from policies.sudoku import SudokuMixerACPolicy
 
 model_name = "SudokuMixer"
 
@@ -12,7 +12,7 @@ if __name__ == '__main__':
 
     env = VecMonitor(VecSudokuEnv(num_instances))
 
-    model = DeviceAlternatingPPO(SudokuACPolicy,
+    model = DeviceAlternatingPPO(SudokuMixerACPolicy,
                                  env,
                                  learning_rate=1e-4,
                                  n_steps=5120,
