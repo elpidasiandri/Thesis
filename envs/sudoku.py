@@ -62,8 +62,10 @@ class SudokuEnv(Env):
             solution_branches = self.get_solutions(state_branch, n_solutions - len(solutions))
             if solution_branches is not None:
                 solutions += solution_branches
-            if len(solutions) >= n_solutions:
+            if len(solutions) == n_solutions:
                 return solutions
+        else:
+            return solutions
 
     def _check_status(self, state=None) -> int:
         if state is None:
