@@ -9,7 +9,7 @@ model_name = "SudokuMixer"
 
 if __name__ == '__main__':
     num_instances = 16
-    total_timesteps = 1_000_000
+    total_timesteps = 30_000_000
 
     env = VecMonitor(VecSudokuEnv(num_instances))
 
